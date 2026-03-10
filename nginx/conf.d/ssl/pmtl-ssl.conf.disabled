@@ -1,16 +1,19 @@
 server {
-    listen 80;
+    listen 443 ssl http2;
     server_name phapmontamlinh-quantheambotat.vn www.phapmontamlinh-quantheambotat.vn;
 
+    ssl_certificate /etc/letsencrypt/live/phapmontamlinh-quantheambotat.vn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/phapmontamlinh-quantheambotat.vn/privkey.pem;
+
+    # Strong defaults
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
     resolver 127.0.0.11 valid=30s;
-
-    # Prevent browsers from caching HTTPS-only behavior until TLS is configured on this VPS.
-    proxy_hide_header Strict-Transport-Security;
-
-    # Let's Encrypt HTTP-01 challenge (certbot webroot)
-    location ^~ /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
 
     # Strapi returns 404 on /admin/ but works on /admin
     location = /admin/ { return 301 /admin; }
@@ -21,7 +24,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
     }
 
     location ^~ /admin {
@@ -30,7 +33,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
     }
 
     location / {
@@ -41,6 +44,6 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
     }
 }
