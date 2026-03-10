@@ -1,0 +1,90 @@
+# 🗺️ Site Map Lư Quân Hoành (lujunhong2or.com) & Đề Xuất Chức Năng
+
+Dưới đây là Site Map được dịch từ trang chính (tiếng Trung) sang tiếng Việt, cùng với các đề xuất chức năng để hỗ trợ tốt nhất cho các Phật tử Việt Nam.
+
+---
+
+## PHẦN 1: SITE MAP (Việt Hóa từ trang web chính)
+
+### 1. Menu Chính (Main Navigation)
+- **Trang chủ** (首页)
+- **Tất cả bài viết** (全部文章)
+- **Tâm Linh Pháp Môn** (心灵法门 - Pháp môn của Sư phụ Lư Quân Hoành)
+- **Bạch Thoại Phật Pháp** (白话佛法 - Lời giảng Phật pháp dễ hiểu)
+- **Huyền Nghệ Tông Thuật** (玄艺综述 - Trực tiếp xem đồ đằng/nhân quả)
+- **Phản hồi nổi bật** (精彩反馈 - Chia sẻ thành quả tu tập/Cảm ngộ)
+- **Tải xuống** (下载)
+- **Thông báo mới nhất** (最新通知)
+- **Liên hệ** (联系方式)
+- **Bảng tin / Lưu bút** (留言板)
+
+### 2. Danh mục Tải xuống: Tài liệu & Biểu mẫu (书籍和资料下载)
+#### 2.1 Kinh Văn (Thường dùng)
+- Kinh sách chữ to bản nhỏ Quan Âm Đường mới nhất
+- Kinh sách đồng âm bản lớn
+#### 2.2 Biểu Mẫu, Bài Viết Hướng Dẫn Kèm Mẫu
+- Các bước công phu hàng ngày cho người mới bắt đầu và lưu ý về Tiểu Phẩm (Tiểu Pháo/XFZ)
+- Mẫu Tiểu Phẩm (Ngôi Nhà Nhỏ) và Hướng dẫn trì tụng
+- Mẫu tự tu kinh văn và lưu ý
+- Mẫu sớ xin đổi tên và lưu ý
+- Mẫu sớ khuyến đạo và lưu ý
+- Thiết lập bàn thờ Phật tại gia
+- Trình tự Lễ Phật
+- Trình tự Phóng sanh
+- Bài hát hợp xướng Đại Bi Chú (100 người hát)
+- Nhạc Thánh hiệu Quán Thế Âm Bồ Tát & Tải hình Pháp tướng Sư phụ (tùy chọn để in thờ cúng)
+#### 2.3 Liên Kết Tải (Tổng hợp & Phân loại)
+- Tải tổng hợp tất cả tài liệu kinh sách
+- Kinh thư / Kinh văn
+- Sổ tay nhập môn
+- 175 câu hỏi đáp Phật học (Bản cập nhật)
+- Hướng dẫn tụng niệm Tiểu Phẩm
+
+### 3. Ấn Phẩm & Sách (Bạch Thoại Phật Pháp & Lời Phật Dạy)
+- **Bạch Thoại Phật Pháp:** Từ tập 1 đến tập 12 (Có bản Pinyin ghép vần tập 1,2).
+- **Phật Ngôn Phật Ngữ:** Sách mỏng từ tập 1 đến 14 (Có bản Trung, Anh) khổ 10x15cm.
+- **Sách kệ / Thiền / Ký sự:** Kệ Ngữ Phật Ngôn (Tập 1-4), Thiền Ngữ Tâm Linh (Tập 1-2), Du ký thiên địa (Tập 1-2).
+- **Sách khái niệm Huyền học:** Nhất mệnh nhị vận tam phong thủy, Thiên Địa Nhân, Thế giới Đồ Đằng, Tâm linh Pháp môn (giới thiệu), Khái niệm/Không gian Phật pháp mới.
+- **Sách ứng dụng đời sống:** Hôn nhân tình cảm (1, 2), Thường thức Phật học (1, 2), Thực tế bệnh tật (1, 2), Bách khoa bệnh lý, Phân tích Pháp hội, Cẩm nang độ nhân, Hướng dẫn lập bàn thờ, Sách ảnh: Ăn chay - Kiêng sát - Phóng sinh.
+
+### 4. Băng Ghi Âm & Video (Giải đáp, Khai thị, Radio)
+- **Giải đáp ghi âm (2008 - 2020):** Các bản ghi âm tư vấn trực tiếp tải theo năm.
+- **Ghi âm/Video Pháp hội:** Các năm (Phần A, B, Clip ngắn, Cắt ghép).
+- **Bạch Thoại Phật Pháp Radio:** Tải theo nhóm tập (1-68, 69+).
+- **Video khai thị:** Clip Khai thị, Sư phụ kể chuyện 10 đại đệ tử, Video dạy tụng kinh, Video 33 hóa thân Quán Thế Âm, Video chào năm mới.
+- **Văn bản Text:** Tải trích lục lời bài giảng, bài blog.
+
+---
+
+## PHẦN 2: ĐỀ XUẤT CHỨC NĂNG CHO FRONTEND (Dành cho Phật tử Việt Nam)
+
+Nhìn vào Site Map trên, trang web gốc bản chất là một **"Kho dữ liệu vĩ đại"** tài liệu hành trì và Khai thị. Tuy nhiên người Việt Nam sẽ gặp rào cản rất lớn về mặt ngôn ngữ và tra cứu. 
+
+Do đó, FE của anh nên ưu tiên phát triển các tính năng hỗ trợ **Thực Hành Tu Tập (Công phu)** và **Tra cứu Tiếng Việt**:
+
+### 1. Trình Hỗ Trợ Công Phu Hàng Ngày (Daily Practice Assistant)
+- **Công cụ Đếm Ký Lục (Chanting Counter):** Màn hình niệm kinh thông minh để người dùng có thể nhấp đếm số lượng các loại kinh (Đại Bi Chú, Tâm Kinh...). 
+- **Giữ Màn Hình Luôn Sáng (Keep Awake):** Khi người dùng mở kinh văn trực tuyến trên điện thoại, khóa màn hình tự động tắt để họ tập trung đọc kinh.
+- **Quản Lý Tiểu Phẩm (XFZ Tracker):** Tính năng nhập và theo dõi số lượng Tiểu Phẩm đã niệm, mục đích niệm (cho oan gia trái chủ, trả nợ...), và nhắc nhở ngày đi đốt sớ.
+
+### 2. Âm Thanh/Video Thuận Tiện Trình Chiếu Đa Ngôn Ngữ
+- **Trình Phát Video có Subtitle (Phụ đề Việt):** Các video gốc tiếng Trung (chữa bệnh/xem đồ đằng) cần trình phát video hỗ trợ gắn được SRT (Phụ đề tiếng Việt) dễ dàng. Âm thanh giữ nguyên giọng ân sư nhưng phụ đề Việt cho mọi người hiểu.
+- **Karaoke Chanting:** Audio các đoạn kinh tụng, màn hình chạy chữ Pinyin + Phiên âm Hán Việt + Dịch nghĩa để người mới bắt đầu dễ ngâm tụng theo.
+
+### 3. Lịch Âm & Nhắc Ngày Trọng Đại (Buddhist Calendar)
+- Tích hợp lịch Âm Dương theo múi giờ Việt Nam.
+- Dấu hiệu nổi bật các ngày quan trọng: **Mùng 1, Ngày Rằm, Các Ngày Vía Bồ Tát, Ngày lễ của Môn phái.**
+- **Bật Popup/Notif Nhắc Nhở:** Hôm nay là 15, nhắc mọi người ăn chay, phóng sinh, tụng thêm kinh Lễ Phật Đại Sám Hối.
+
+### 4. Tạo Nhanh Biểu Mẫu Bằng Tiếng Việt (Auto PDF Generator)
+- Người dùng vào web, nhập tên, ngày sinh của họ. Hệ thống **tự động chèn tên vào các biểu mẫu sớ** như (Sớ đốt Tiểu Phẩm, Sớ xin đổi tên...) và kết xuất thành file PDF rõ nét để họ in ra tại nhà. (Tránh điền sai, thừa/thiếu thông tin).
+
+### 5. Từ Điển & Bộ Lọc Tìm Kiếm Thông Minh (Tra Cứu Khai Thị)
+- **Tìm kiếm theo Từ Khóa (Elastic Search):** Nhập chữ "Trầm Cảm" -> Hiện ra mọi sách, video cẩm nang, lời khuyên của Sư phụ về cách đọc kinh chữa trầm cảm.
+- **Từ điển Thuật ngữ:** Giải thích các từ chuyên môn của pháp môn (Mậu dịch, Khai thị, Đồ đằng, Tiểu Phẩm...) để người Việt vào không bị bỡ ngỡ.
+
+### 6. Giao Diện Cực Kì Đơn Giản Cho Người Lớn Tuổi (Senior-Friendly UI)
+- Đa phần người tu tập mạnh mang độ tuổi trung niên. Cần thiết kế:
+  - Nút bấm (Button) bự, icon to rõ.
+  - Hỗ trợ đổi cỡ chữ (Font Sizer) trực tiếp trên trang.
+  - Chống nhầm lẫn: Cấu trúc điều hướng dạng "Step by Step" (VD: Tab "Cho người mới bắt đầu" ghim ngay trang chủ).

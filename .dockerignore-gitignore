@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+bower_components/
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+.env.backup
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Certificates and Keys
+certbot/
+*.crt
+*.key
+*.pem
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+health-check.log
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.nuxt/
+coverage/
+.cache/
+.turbo/
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.tmp/
+postgres_data/
+
+# Testing
+.nyc_output/
+.mocha_cache/
+
+# Misc
+.env*.local
+.cache
+.output
+dist
+
+# Database backups
+*.sql
+*.sql.gz
+backup*.sql*
+
+# Node
+npm-debug.log
+yarn-error.log
+
+# Package lock files (optional - uncomment if you use one)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
