@@ -9,7 +9,7 @@ KEY="${CERT_DIR}/privkey.pem"
 
 SSL_DIR="/etc/nginx/conf.d/ssl"
 DISABLED_CONF="${SSL_DIR}/pmtl-ssl.conf.disabled"
-ENABLED_CONF="${SSL_DIR}/pmtl-ssl.conf"
+ENABLED_CONF="/etc/nginx/conf.d/pmtl-ssl.conf"
 
 mkdir -p "${SSL_DIR}"
 
