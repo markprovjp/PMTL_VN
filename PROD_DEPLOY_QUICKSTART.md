@@ -41,3 +41,16 @@ ssh pmtl-vps "cd /root/pmtl-vn && bash scripts/prod-deploy.sh --skip-pull"
 2. Commit + push FE/BE
 3. Run one deploy command above
 4. Verify website quickly with `prod-status.sh`
+
+## Auto deploy (GitHub Actions)
+
+Workflow file: `.github/workflows/deploy-vps.yml`
+
+Required repository secrets:
+
+- `VPS_HOST`: `14.225.204.20`
+- `VPS_USER`: `root`
+- `VPS_PORT`: `22`
+- `VPS_SSH_PRIVATE_KEY`: private key content from `C:\Users\ADMIN\.ssh\pmtl_vn_ed25519`
+
+After adding secrets, each push to `main` or `master` can auto-run deploy.

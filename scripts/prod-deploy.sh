@@ -70,6 +70,14 @@ require_cmd() {
   fi
 }
 
+acquire_lock() {
+  exec 9>/tmp/pmtl-prod-deploy.lock
+  if ! flock -w 900 9; then
+    err "Cannot acquire deploy lock (/tmp/pmtl-prod-deploy.lock). Another deploy may be running."
+    exit 1
+  fi
+}
+
 stash_if_dirty() {
   local repo="$1"
   pushd "$repo" >/dev/null
@@ -126,6 +134,8 @@ main() {
   require_cmd git
   require_cmd docker
   require_cmd curl
+  require_cmd flock
+  acquire_lock
 
   if [[ ! -d "$APP_DIR" ]]; then
     err "APP_DIR not found: $APP_DIR"
