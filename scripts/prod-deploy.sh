@@ -9,6 +9,7 @@ FE_BRANCH="${FE_BRANCH:-main}"
 BE_BRANCH="${BE_BRANCH:-main}"
 NO_CACHE="${NO_CACHE:-0}"
 SKIP_PULL="${SKIP_PULL:-0}"
+SYNC_ROOT="${SYNC_ROOT:-0}"
 
 timestamp() { date "+%Y-%m-%d %H:%M:%S"; }
 log() { printf "[%s] %s\n" "$(timestamp)" "$*"; }
@@ -22,6 +23,7 @@ Usage:
 Options:
   --no-cache      Build images with --no-cache
   --skip-pull     Skip git pull step
+  --sync-root     Also pull root repo (default: off)
   --root-branch   Root repo branch (default: main)
   --fe-branch     Frontend repo branch (default: main)
   --be-branch     Backend repo branch (default: main)
@@ -37,6 +39,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-pull)
       SKIP_PULL=1
+      shift
+      ;;
+    --sync-root)
+      SYNC_ROOT=1
       shift
       ;;
     --root-branch)
@@ -152,7 +158,11 @@ main() {
   log "Deploy start in $APP_DIR"
 
   if [[ "$SKIP_PULL" != "1" ]]; then
-    sync_repo "$APP_DIR" "$ROOT_BRANCH"
+    if [[ "$SYNC_ROOT" == "1" ]]; then
+      sync_repo "$APP_DIR" "$ROOT_BRANCH"
+    else
+      log "Skip root repo sync (use --sync-root to enable)"
+    fi
     sync_repo "$APP_DIR/BE_PMTL" "$BE_BRANCH"
     sync_repo "$APP_DIR/fe-pmtl" "$FE_BRANCH"
   else
