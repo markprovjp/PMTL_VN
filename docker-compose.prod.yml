@@ -4,74 +4,142 @@ services:
     container_name: pmtl-postgres
     restart: always
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-strapi_db}
-      POSTGRES_USER: ${DATABASE_USERNAME:-strapi_user}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-change_me}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-strapi_user}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+    shm_size: 256m
+    mem_limit: 768m
     networks:
       - pmtl-network
 
   backend:
-    build: ./BE_PMTL
+    build:
+      context: ./BE_PMTL
+      dockerfile: Dockerfile
     container_name: pmtl-backend
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
-    env_file: .env
+      meilisearch:
+        condition: service_started
     environment:
       NODE_ENV: production
-      NODE_OPTIONS: --max-old-space-size=512
-    ports:
-      - "1337:1337"
-    volumes:
-      - ./BE_PMTL/public/uploads:/app/public/uploads
-    networks:
-      - pmtl-network
+      NODE_OPTIONS: --max-old-space-size=1536
+      HOST: 0.0.0.0
+      PORT: 1337
+      PUBLIC_URL: https://strapi.phapmontamlinh-quantheambotat.vn
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+      APP_KEYS: ${APP_KEYS}
+      API_TOKEN_SALT: ${API_TOKEN_SALT}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FRONTEND_URL: ${NEXT_PUBLIC_SITE_URL}
+      MEILISEARCH_ENABLED: "true"
+      MEILISEARCH_HOST: http://meilisearch:7700
+      MEILISEARCH_API_KEY: ${MEILISEARCH_MASTER_KEY}
+    ports: ["127.0.0.1:1337:1337"]
+    volumes: ["./BE_PMTL/public/uploads:/app/public/uploads"]
+    mem_limit: 1536m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1337/admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks: [pmtl-network]
 
   frontend:
     build:
       context: ./fe-pmtl
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_STRAPI_API_URL: ${NEXT_PUBLIC_STRAPI_API_URL}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
     container_name: pmtl-frontend
     restart: always
     depends_on:
       backend:
-        condition: service_started
-    env_file: .env
+        condition: service_healthy
     environment:
       NODE_ENV: production
-      NODE_OPTIONS: --max-old-space-size=512
-    ports:
-      - "3000:3000"
-    networks:
-      - pmtl-network
+      NODE_OPTIONS: --max-old-space-size=768
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      NEXT_PUBLIC_STRAPI_API_URL: ${NEXT_PUBLIC_STRAPI_API_URL}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_EMAIL: ${VAPID_EMAIL}
+      PUSH_SEND_SECRET: ${PUSH_SEND_SECRET}
+      STRAPI_API_TOKEN: ${STRAPI_API_TOKEN}
+    ports: ["127.0.0.1:3000:3000"]
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks: [pmtl-network]
 
   nginx:
     image: nginx:alpine
     container_name: pmtl-nginx
     restart: always
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - "80:80"
-      - "443:443"
+    ports: ["80:80", "443:443"]
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/docker-entrypoint.d:/docker-entrypoint.d:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
+    networks: [pmtl-network]
+    mem_limit: 128m
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: pmtl-meilisearch
+    restart: always
+    environment:
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY}
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - "127.0.0.1:7700:7700"
     networks:
       - pmtl-network
+    mem_limit: 1024m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7700/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
 
 volumes:
-  postgres_data:
-networks:
-  pmtl-network:
-    driver: bridge
+  postgres_data: {}
+  meilisearch_data: {}
+networks: { pmtl-network: { driver: bridge } }
