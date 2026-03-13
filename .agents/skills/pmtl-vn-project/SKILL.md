@@ -13,6 +13,7 @@ Use this skill before making code changes in this repository. It replaces the ol
 - Backend app: `BE_PMTL`
 - Frontend stack: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v3, `lucide-react`, `framer-motion`, `@tanstack/react-query`
 - Backend stack: Strapi v5, TypeScript, zod, Jest, Meilisearch plugin
+- Installed Strapi admin plugins in this repo now include Import Export, Duplicate Button, oEmbed, Strapi Calendar, Lucide Icon Picker, Redis, and BullMQ
 - UI system: local source components under `fe-pmtl/components/ui`
 - shadcn config: `fe-pmtl/components.json`
   - aliases use `@/`
@@ -89,18 +90,37 @@ This repo already has a shadcn-style setup via `fe-pmtl/components.json`.
 
 - This is a Strapi v5 backend.
 - Use `strapi.documents(...)` for normal document access.
-- Avoid `entityService` in new code.
+- Avoid `entityService` in new code. If you touch a file that still uses it and there is no blocker, migrate that path to `strapi.documents(...)` in the same turn.
+- For Strapi admin UX, keep schema keys in English but provide Vietnamese i18n labels in `BE_PMTL/src/admin/extensions/translations/vi.json`, then regenerate merged admin translations.
+- Current admin plugin decisions:
+  - use `Lucide Icon Picker` for icon selection UX
+  - do not introduce Iconify/IconHub-style icon data into FE contracts unless the user explicitly asks for a migration
+  - `ui-icon.lucideName` remains the FE-facing source of truth for icon resolution
+  - `oembed` is enabled for `blog-post` and `event`
+  - Google Analytics Dashboard plugin was removed from this repo
+  - `strapi-calendar` is preseeded to `api::event.event` with `startField: date`
 - Public reads should explicitly set published status when appropriate.
 - Use explicit `fields` and `populate`; avoid broad wildcard populate.
 - Validate public write inputs before business logic.
+- Public write flows that need cooldown, dedupe, or abuse protection must persist guard state in the database. Do not rely on in-memory `Map` state for production behavior.
 - Keep controllers thin and move reusable logic to services or utils.
 - Prefer `documentId` in FE-facing routes and contracts, not numeric `id`.
+- Stats or archive endpoints must page through datasets or use counts; do not silently hard-cap totals with `limit: 5000` or similar.
+- Custom public endpoints should ship with at least targeted Jest coverage for the core branching logic or helper layer they depend on.
+- If you add or change content type fields/enums, run `npm run i18n:vi` in `BE_PMTL` so admin loads updated Vietnamese labels from `vi.merged.json`.
+- `BE_PMTL` build now has a prebuild hook (`scripts/ensure-admin-vi.mjs`) that checks `schema.json` hash and auto-runs `npm run i18n:vi` only when schema changed. Do not bypass this by calling raw Strapi build binaries directly in automation.
 - Meilisearch index settings and search document behavior must stay deterministic. Keep searchable, filterable, sortable, and displayed fields explicit.
 - Search document mapping for blog posts lives in `BE_PMTL/src/search/blog-post-search.ts`. Treat it as the single source of truth for Meilisearch field shape, normalization, ranking settings, and indexable metadata.
 - When changing blog search fields, update the transformer, plugin config in `BE_PMTL/config/plugins.ts`, and any frontend `attributesToRetrieve` contract in the same turn.
 - Reindex operations should go through `api::blog-post.search-index`, which wraps the Meilisearch plugin services with logging and retry. Do not create ad hoc indexing code in controllers or lifecycles.
 - Category or tag changes must trigger blog-post reindexing because blog search documents denormalize category/tag names and slugs.
 - Operational rebuild commands are `npm run reindex:blog-post` and `npm run reindex:all`. Prefer them over manual Meilisearch console edits.
+- Queue and push rules:
+  - Push notifications are queue-first now: frontend should create `push-job` documents only; Strapi lifecycles enqueue BullMQ jobs and workers call `/api/push/process`
+  - Queue health commands live in `BE_PMTL/package.json`: `npm run check:queue` and `npm run test:push-queue`
+  - If Redis/BullMQ is disabled, Strapi should warn clearly rather than silently assuming queue processing works
+  - For production Docker, Redis/BullMQ is an optional `queue` profile in `docker-compose.prod.yml`; default production mode can run with queue disabled to save RAM
+  - For local Windows dev, `run.bat` is the preferred entry point and should start Redis + Meilisearch + FE + BE together
 - Treat `BE_PMTL/config/plugins.ts` and backend env as the source of truth for Meilisearch credentials. If env-based config is present, do not rely on the Strapi plugin settings page as the canonical place to store credentials.
 - Key split:
   - `MEILISEARCH_API_KEY` in backend: must be the Meilisearch `master` key or another admin-capable key that can create indexes and update settings
@@ -186,6 +206,7 @@ Before editing:
 2. Read the closest existing implementation for the same feature.
 3. Confirm the data contract before changing field usage.
 4. Confirm whether an existing `components/ui` primitive already solves the UI need.
+5. For BE public endpoints, decide whether abuse/rate-limit state must survive restart and store it outside process memory if yes.
 
 Before finishing:
 
@@ -193,3 +214,4 @@ Before finishing:
 2. Check that server/client boundaries still make sense.
 3. Check that any UI-facing change still matches the repo's current visual language and token system.
 4. Mention any unresolved debt or risks clearly.
+5. If the work touched Strapi write paths, check whether audit/history or moderation side effects still fire correctly.

@@ -22,6 +22,18 @@ services:
     networks:
       - pmtl-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: pmtl-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - pmtl-network
+
   # Backend - Strapi
   backend:
     build:
@@ -32,6 +44,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       HOST: 0.0.0.0
@@ -48,6 +62,12 @@ services:
       ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-default_secret_change_this}
       JWT_SECRET: ${JWT_SECRET:-default_jwt_change_this}
       TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT:-default_transfer}
+      REDIS_ENABLED: ${REDIS_ENABLED:-true}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
+      FRONTEND_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      PUSH_WORKER_SECRET: ${PUSH_WORKER_SECRET:-dev_push_secret}
     ports:
       - "${BACKEND_PORT:-1337}:1337"
     volumes:
@@ -120,6 +140,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

@@ -25,6 +25,62 @@ The JSON above contains the project config and installed components. Use `npx sh
 3. **Use built-in variants before custom styles.** `variant="outline"`, `size="sm"`, etc.
 4. **Use semantic colors.** `bg-primary`, `text-muted-foreground` — never raw values like `bg-blue-500`.
 
+## Component-First Mandate
+
+When working in a project that already has a populated `components/ui` directory, treat shadcn as a **component composition system**, not a styling suggestion.
+
+1. **Maximise reuse of installed primitives.** If the UI can reasonably be expressed with existing shadcn components, do that before writing custom markup.
+2. **Prefer richer composition over plain wrappers.** A good shadcn screen should usually contain several cooperating primitives: `Card` + `Tabs` + `ScrollArea`, `Dialog` + `Form` + `Button`, `Popover` + `Command`, etc.
+3. **Avoid browser-native UI** for app interactions when a local shadcn primitive exists.
+   - `window.prompt` → `Dialog` + `Input`/`Textarea`
+   - `window.confirm` → `AlertDialog`
+   - ad hoc tooltips/help bubbles → `Tooltip`, `HoverCard`, or `Popover`
+4. **Do not default to raw `div` + border + padding** for panels, menus, empty states, sidebars, or overlays. Reach for a component recipe first.
+5. **Use multiple components when the surface benefits from structure.** The goal is not fewer imports; the goal is a better-composed interface.
+
+## Current Project Inventory
+
+For this PMTL_VN repo, the installed local shadcn/radix primitives include:
+
+- Core structure: `card`, `separator`, `resizable`, `scroll-area`, `collapsible`, `accordion`, `tabs`, `sidebar`, `sheet`, `drawer`
+- Actions and feedback: `button`, `badge`, `alert`, `alert-dialog`, `sonner`, `progress`, `skeleton`
+- Inputs and forms: `form`, `input`, `textarea`, `select`, `switch`, `checkbox`, `radio-group`, `toggle`, `toggle-group`, `slider`, `input-otp`, `calendar`
+- Navigation: `breadcrumb`, `navigation-menu`, `menubar`, `pagination`, `command`
+- Overlays and detail affordances: `dialog`, `popover`, `hover-card`, `tooltip`, `dropdown-menu`, `context-menu`
+- Data display: `avatar`, `table`, `chart`, `carousel`, `aspect-ratio`
+- Local project extras: `feature-card`, `section-shell`
+
+Because this project uses `base: radix`, these components are already enough to build most interface patterns without inventing custom wrappers.
+
+## Preferred Recipes
+
+When generating or editing UI, prefer these recipes by default:
+
+- Page shell: `SectionShell` or layout container + `Breadcrumb` + `Card`
+- Reading/detail page: `Card` + `Badge` + `ScrollArea` + `Tabs`/`Collapsible` + `Popover`/`HoverCard`
+- Dense sidebar: `Card` + `ScrollArea` + `Collapsible` + `Button` + `Badge`
+- Search/filter panel: `Input` + `Select` + `ToggleGroup` + `Badge` + `Popover`/`Command`
+- Modal workflow: `Dialog` + `DialogHeader` + `Form` + `Button`
+- Dangerous action: `AlertDialog`
+- Inline status/info: `Alert`, `Badge`, `Tooltip`
+- Long lists: `ScrollArea` + `Card` or `Table`
+- Stepper/sectioned content: `Tabs`, `Accordion`, or `Collapsible`
+- Metrics/dashboard: `Card` + `Chart` + `Progress` + `Badge`
+- Media display: `AspectRatio` + `Carousel`
+
+## Diversity Heuristic
+
+When a user asks for "đẹp", "xịn", "đa dạng", "radix-like", or a premium UI, bias toward **using more of the right primitives together**, not toward custom ornament.
+
+- Good: `CardHeader`, `CardContent`, `Badge`, `Separator`, `ScrollArea`, `Dialog`, `HoverCard`, `Tooltip`
+- Weak: one big `div` with manual padding/border and a few styled buttons
+
+Use this rule of thumb:
+
+- If a screen has 3 or more distinct interaction zones, it should usually use at least 3 different shadcn primitives.
+- If a screen has an action that opens, reveals, filters, confirms, or annotates something, it should usually use the corresponding overlay/disclosure primitive instead of custom stateful markup.
+- If the layout feels visually flat, increase structure with composition (`CardHeader`, `CardDescription`, `Separator`, grouped `Badge`s, `ScrollArea`) before adding decorative CSS.
+
 ## Critical Rules
 
 These rules are **always enforced**. Each links to a file with Incorrect/Correct code pairs.
@@ -67,6 +123,9 @@ These rules are **always enforced**. Each links to a file with Incorrect/Correct
 - **Use `Separator`** instead of `<hr>` or `<div className="border-t">`.
 - **Use `Skeleton`** for loading placeholders. No custom `animate-pulse` divs.
 - **Use `Badge`** instead of custom styled spans.
+- **Use `Dialog`/`Sheet`/`Drawer`/`AlertDialog` instead of browser-native prompt/confirm flows.**
+- **Use `ScrollArea` for constrained panels and sidebars** instead of raw overflowing containers when the list can grow.
+- **Use `CardHeader`/`CardDescription`/`CardContent` to create hierarchy** before adding custom wrappers inside cards.
 
 ### Icons → [icons.md](./rules/icons.md)
 
@@ -166,13 +225,14 @@ npx shadcn@latest docs button dialog select
 
 1. **Get project context** — already injected above. Run `npx shadcn@latest info` again if you need to refresh.
 2. **Check installed components first** — before running `add`, always check the `components` list from project context or list the `resolvedPaths.ui` directory. Don't import components that haven't been added, and don't re-add ones already installed.
-3. **Find components** — `npx shadcn@latest search`.
-4. **Get docs and examples** — run `npx shadcn@latest docs <component>` to get URLs, then fetch them. Use `npx shadcn@latest view` to browse registry items you haven't installed. To preview changes to installed components, use `npx shadcn@latest add --diff`.
-5. **Install or update** — `npx shadcn@latest add`. When updating existing components, use `--dry-run` and `--diff` to preview changes first (see [Updating Components](#updating-components) below).
-6. **Fix imports in third-party components** — After adding components from community registries (e.g. `@bundui`, `@magicui`), check the added non-UI files for hardcoded import paths like `@/components/ui/...`. These won't match the project's actual aliases. Use `npx shadcn@latest info` to get the correct `ui` alias (e.g. `@workspace/ui/components`) and rewrite the imports accordingly. The CLI rewrites imports for its own UI files, but third-party registry components may use default paths that don't match the project.
-7. **Review added components** — After adding a component or block from any registry, **always read the added files and verify they are correct**. Check for missing sub-components (e.g. `SelectItem` without `SelectGroup`), missing imports, incorrect composition, or violations of the [Critical Rules](#critical-rules). Also replace any icon imports with the project's `iconLibrary` from the project context (e.g. if the registry item uses `lucide-react` but the project uses `hugeicons`, swap the imports and icon names accordingly). Fix all issues before moving on.
-8. **Registry must be explicit** — When the user asks to add a block or component, **do not guess the registry**. If no registry is specified (e.g. user says "add a login block" without specifying `@shadcn`, `@tailark`, etc.), ask which registry to use. Never default to a registry on behalf of the user.
-9. **Switching presets** — Ask the user first: **reinstall**, **merge**, or **skip**?
+3. **Map the surface to a recipe before coding.** Decide which installed primitives should make up the screen. Prefer a composition plan such as `Card + Tabs + ScrollArea + Dialog` over freehand markup.
+4. **Find missing components only after checking installed ones** — `npx shadcn@latest search`.
+5. **Get docs and examples** — run `npx shadcn@latest docs <component>` to get URLs, then fetch them. Use `npx shadcn@latest view` to browse registry items you haven't installed. To preview changes to installed components, use `npx shadcn@latest add --diff`.
+6. **Install or update** — `npx shadcn@latest add`. When updating existing components, use `--dry-run` and `--diff` to preview changes first (see [Updating Components](#updating-components) below).
+7. **Fix imports in third-party components** — After adding components from community registries (e.g. `@bundui`, `@magicui`), check the added non-UI files for hardcoded import paths like `@/components/ui/...`. These won't match the project's actual aliases. Use `npx shadcn@latest info` to get the correct `ui` alias (e.g. `@workspace/ui/components`) and rewrite the imports accordingly. The CLI rewrites imports for its own UI files, but third-party registry components may use default paths that don't match the project.
+8. **Review added components** — After adding a component or block from any registry, **always read the added files and verify they are correct**. Check for missing sub-components (e.g. `SelectItem` without `SelectGroup`), missing imports, incorrect composition, or violations of the [Critical Rules](#critical-rules). Also replace any icon imports with the project's `iconLibrary` from the project context (e.g. if the registry item uses `lucide-react` but the project uses `hugeicons`, swap the imports and icon names accordingly). Fix all issues before moving on.
+9. **Registry must be explicit** — When the user asks to add a block or component, **do not guess the registry**. If no registry is specified (e.g. user says "add a login block" without specifying `@shadcn`, `@tailark`, etc.), ask which registry to use. Never default to a registry on behalf of the user.
+10. **Switching presets** — Ask the user first: **reinstall**, **merge**, or **skip**?
    - **Reinstall**: `npx shadcn@latest init --preset <code> --force --reinstall`. Overwrites all components.
    - **Merge**: `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` to list installed components, then for each installed component use `--dry-run` and `--diff` to [smart merge](#updating-components) it individually.
    - **Skip**: `npx shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS, leaves components as-is.

@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'SilentlyContinue'
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
-$defaultPorts = @(1337, 3000, 3001, 4173, 4200, 5173, 7700, 9229)
+$defaultPorts = @(1337, 3000, 3001, 4173, 4200, 5173, 6379, 7700, 9229)
 $databasePorts = @(5432, 1433, 1434)
 $targetPorts = if ($Ports -and $Ports.Count -gt 0) { $Ports } else { $defaultPorts }
 
