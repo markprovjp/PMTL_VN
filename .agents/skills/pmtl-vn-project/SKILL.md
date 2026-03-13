@@ -37,8 +37,20 @@ Use this skill before making code changes in this repository. It replaces the ol
 - Do not write new code around `attributes` or `data.attributes`.
 - Shared frontend data types live in `fe-pmtl/types/strapi.ts`.
 - Shared fetch helpers live in `fe-pmtl/lib/strapi.ts`, `fe-pmtl/lib/strapi-client.ts`, and `fe-pmtl/lib/api/`.
+- Search URL parsing and serialization live in `fe-pmtl/lib/search/search-params.ts`; do not hand-roll query parsing in each component.
+- Recent search persistence lives in `fe-pmtl/lib/search/recent-searches.ts`; do not scatter raw localStorage keys.
 - Pages belong in `fe-pmtl/app`, reusable UI in `fe-pmtl/components`, feature data access in `fe-pmtl/lib/api`.
 - Reuse components before inventing new abstractions.
+- When search state changes, keep `q`, `cat`, `tags`, `time`, `sort`, and `page` in the URL so back/forward navigation and share links keep working.
+- Search pages should prefetch initial results on the server when possible, then enhance on the client for debounced updates and voice search.
+- For search/filter pages that are not intended to rank individually, prefer `robots: noindex, follow` while keeping the base landing page indexable.
+- When improving PMTL study UX, prefer deepening existing routes such as `fe-pmtl/app/niem-kinh/page.tsx` and `fe-pmtl/app/lunar-calendar/page.tsx` before adding a new top-level navigation item.
+- Keep the main header compact. Prefer grouping top-level navigation into the four product pillars instead of exposing every destination as a separate desktop nav link:
+  - daily practice
+  - content library
+  - community
+  - events and organization
+- Do not create new top-level navigation items unless the user explicitly asks for a new section in the header.
 
 ## Design Rules
 
@@ -83,6 +95,19 @@ This repo already has a shadcn-style setup via `fe-pmtl/components.json`.
 - Validate public write inputs before business logic.
 - Keep controllers thin and move reusable logic to services or utils.
 - Prefer `documentId` in FE-facing routes and contracts, not numeric `id`.
+- Meilisearch index settings and search document behavior must stay deterministic. Keep searchable, filterable, sortable, and displayed fields explicit.
+- Search document mapping for blog posts lives in `BE_PMTL/src/search/blog-post-search.ts`. Treat it as the single source of truth for Meilisearch field shape, normalization, ranking settings, and indexable metadata.
+- When changing blog search fields, update the transformer, plugin config in `BE_PMTL/config/plugins.ts`, and any frontend `attributesToRetrieve` contract in the same turn.
+- Reindex operations should go through `api::blog-post.search-index`, which wraps the Meilisearch plugin services with logging and retry. Do not create ad hoc indexing code in controllers or lifecycles.
+- Category or tag changes must trigger blog-post reindexing because blog search documents denormalize category/tag names and slugs.
+- Operational rebuild commands are `npm run reindex:blog-post` and `npm run reindex:all`. Prefer them over manual Meilisearch console edits.
+- Treat `BE_PMTL/config/plugins.ts` and backend env as the source of truth for Meilisearch credentials. If env-based config is present, do not rely on the Strapi plugin settings page as the canonical place to store credentials.
+- Key split:
+  - `MEILISEARCH_API_KEY` in backend: must be the Meilisearch `master` key or another admin-capable key that can create indexes and update settings
+  - `MEILISEARCH_SEARCH_KEY` in frontend: search-only key for queries
+  - `MEILISEARCH_MASTER_KEY` in frontend: acceptable only for local server-side debugging; never expose it to a browser client
+- If the Meilisearch Docker container or data volume is recreated, generated default `search/admin` keys can change. Re-read `GET /keys` with the master key and update local frontend search key if you rely on a generated key.
+- If Strapi admin shows `The provided API key is invalid` on the Meilisearch plugin page while env-based indexing works, restart Strapi first and trust the config-file credentials over the plugin form.
 
 ## Cross-Layer Rules
 
@@ -90,6 +115,34 @@ This repo already has a shadcn-style setup via `fe-pmtl/components.json`.
 - If a content type or custom endpoint changes, inspect both `BE_PMTL/src/api` and `fe-pmtl/lib/api`.
 - For route work, inspect the page or route handler, its API helper, and the backing Strapi controller/service together.
 - Prefer one clear cache strategy per feature.
+- Keep search sort/filter names aligned across `GetPostsOptions`, `app/actions/search.ts`, `fe-pmtl/lib/meilisearch.ts`, and `fe-pmtl/lib/search/search-params.ts`.
+- Cache invalidation targets should be centralized. Revalidation mapping belongs in `fe-pmtl/lib/revalidate.ts`, not duplicated across handlers.
+- Next cache tags must match the tags used in `fe-pmtl/lib/api/*`; if you change a tag in one place, update the revalidation map in the same turn.
+
+## Search Architecture Rules
+
+- Primary search page is `fe-pmtl/app/search/page.tsx` + `fe-pmtl/app/search/SearchClient.tsx`.
+- Use Meilisearch for instant retrieval and Strapi as fallback only.
+- For backend search quality, prioritize stable indexing and clean ranking over analytics-heavy user tracking. This site targets simple, accurate retrieval for content readers, including older users.
+- Search params are:
+  - `q`: query text
+  - `cat`: category slug
+  - `tags`: comma-separated tag slugs
+  - `time`: `all | week | month`
+  - `sort`: `relevance | newest | oldest | most-viewed`
+  - `page`: 1-based page number
+- Debounce text input before fetching.
+- Reset pagination back to page 1 whenever query, category, tags, time, or sort changes.
+- Track both successful searches and zero-result searches.
+- Preserve recent searches client-side and surface them only as a UX enhancement, never as a source of truth.
+
+## Revalidation Rules
+
+- The Strapi webhook endpoint is `fe-pmtl/app/api/revalidate/route.ts`.
+- Revalidation should invalidate both tags and important paths when content changes.
+- Prefer mapping by `uid` first and fall back to `model` only when necessary.
+- Blog content updates should clear `/blog`, `/search`, `/archive`, and the article detail path when a slug exists.
+- Revalidation is for server caches and ISR. Client caches like TanStack Query should still invalidate themselves per feature.
 
 ## PMTL Feature Areas
 
@@ -104,6 +157,26 @@ Common domains in this repo:
 - downloads / library
 - push notifications
 - search
+
+## PMTL UX Direction
+
+- Treat `lunar-calendar` as an actionable study surface, not just a date lookup page. Prefer showing:
+  - today's special days
+  - recommended related reading
+  - direct CTA into `niem-kinh`
+  - gentle reminder/settings links instead of noisy prompts
+- Notification UX should stay selective and calm. Reuse existing push subscription settings, and phrase notification groups so older users can immediately understand them:
+  - daily practice
+  - content library
+  - events and lunar reminders
+  - community replies
+- `shares` should emphasize moderation and respectful discussion over social-growth mechanics. Surface report tools and community-safety guidance before adding reactions or gamification.
+- `events` pages should support the full event lifecycle using existing data where possible:
+  - clear online/offline attendance cue
+  - direct join/watch link
+  - save-to-calendar link
+  - location/map link
+  - post-event resources if available
 
 ## Execution Checklist
 
