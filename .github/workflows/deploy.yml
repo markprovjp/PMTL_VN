@@ -1,11 +1,12 @@
-name: 🚀 Build and Push PMTL-VN
+name: 🚀 Build, Push and Deploy PMTL-VN
 
 on:
   push:
-    branches: ["main", "master"]
+    branches: ["main", "dev"]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build_and_push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,22 +23,37 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: 📦 Build and push Backend
+      - name: 📦 Build and push CMS (Payload)
         uses: docker/build-push-action@v5
         with:
-          context: ./BE_PMTL
+          context: .
+          file: apps/cms/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/pmtl-be:latest
+          tags: ghcr.io/${{ github.repository_owner }}/pmtl-cms:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: 📦 Build and push Frontend
+      - name: 📦 Build and push Web (Next.js)
         uses: docker/build-push-action@v5
         with:
-          context: ./fe-pmtl
+          context: .
+          file: apps/web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/pmtl-fe:latest
-          build-args: |
-            NEXT_PUBLIC_API_URL=https://pmtl.vn/api
+          tags: ghcr.io/${{ github.repository_owner }}/pmtl-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.VPS_APP_DIR }}
+            docker compose -f infra/docker/compose.prod.yml pull
+            docker compose -f infra/docker/compose.prod.yml up -d
